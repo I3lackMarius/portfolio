@@ -1,46 +1,24 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { styles } from "../styles";
-// menu icons removed (using text icon)
+import menu from "/assets/menu.svg";
+import close from "/assets/close.svg";
 import personal from "/assets/ProfilePic.jpg";
 
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
-import LoginModal from "./Login";
-import RightSidebar from "./RightSidebar";
 
 const Navbar = () => {
   const [active, setActive] = useState("");
-  const { t } = useTranslation("global");
-  const { user, logout } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mobileLandingOpen, setMobileLandingOpen] = useState(false);
-  const mobileLandingRef = useRef(null);
-  const location = useLocation();
+  const [toggle, setToggle] = useState(false);
+  const { t, i18n } = useTranslation("global");
+  const [language, setLanguage] = useState("gb");
 
-  // language toggle moved to sidebar
-
-  // close mobile landing dropdown when clicking outside or on route change
-  useEffect(() => {
-    const onDocClick = (e) => {
-      if (
-        mobileLandingOpen &&
-        mobileLandingRef.current &&
-        !mobileLandingRef.current.contains(e.target)
-      ) {
-        setMobileLandingOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, [mobileLandingOpen]);
-
-  useEffect(() => {
-    // close mobile landing when route changes
-    setMobileLandingOpen(false);
-  }, [location.pathname]);
+  const toggleLanguage = () => {
+    const newLanguage = language === "gb" ? "it" : "gb";
+    setLanguage(newLanguage);
+    i18n.changeLanguage(newLanguage);
+  };
 
   return (
     <nav
@@ -64,113 +42,63 @@ const Navbar = () => {
             <span className="sm:block hidden">{t("Navbar.Iam")}</span>
           </p>
         </Link>
-        {/* Center area */}
-        <div className="flex-1 flex items-center justify-center">
-          {location.pathname === "/" ? (
-            // on landing show landing links (desktop) or mobile button
-            <>
-              <ul className="list-none hidden sm:flex flex-row gap-5 items-center">
-                {(() => {
-                  const navObj = t("Navbar.navLinks", { returnObjects: true });
-                  let entries = Object.entries(navObj);
-                  if (!user) {
-                    entries = entries.filter(([key]) =>
-                      ["About", "Contact"].includes(key)
-                    );
-                  } else if (user.role === "user") {
-                    entries = entries.filter(([key]) =>
-                      ["About", "Experience", "Contact"].includes(key)
-                    );
-                  }
-                  return entries.map(([key, value]) => (
-                    <li
-                      key={key}
-                      className={`${
-                        active === value ? "text-white" : "text-secondary"
-                      } hover:text-white text-[18px] font-medium cursor-pointer`}
-                      onClick={() => setActive(value)}
-                    >
-                      <a href={`#${key}`}>{value}</a>
-                    </li>
-                  ));
-                })()}
-              </ul>
-
-              {/* mobile: show a button that opens small landing links */}
-              <div className="sm:hidden relative" ref={mobileLandingRef}>
-                <button
-                  aria-expanded={mobileLandingOpen}
-                  aria-controls="mobile-landing"
-                  onClick={() => setMobileLandingOpen((s) => !s)}
-                  className="px-3 py-1 rounded bg-slate-700 text-white"
-                >
-                  Home
-                </button>
-                {mobileLandingOpen && (
-                  <div
-                    id="mobile-landing"
-                    className="absolute left-1/2 -translate-x-1/2 mt-2 w-40 bg-[#071e22] rounded shadow-lg p-2 z-20"
-                  >
-                    <ul className="flex flex-col gap-2">
-                      {Object.entries(
-                        t("Navbar.navLinks", { returnObjects: true })
-                      ).map(([key, value]) => (
-                        <li key={key}>
-                          <a
-                            className="block px-2 py-1 text-secondary hover:text-white"
-                            href={`#${key}`}
-                            onClick={() => setMobileLandingOpen(false)}
-                          >
-                            {value}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="text-white text-lg font-semibold">
-              {location.pathname === "/app" && "Dashboard"}
-              {location.pathname === "/profile" && "Profile"}
-              {location.pathname === "/admin" && "Admin"}
-            </div>
+        <ul className="list-none hidden sm:flex flex-row gap-5">
+          {Object.entries(t("Navbar.navLinks", { returnObjects: true })).map(
+            ([key, value]) => (
+              <li
+                key={key}
+                className={`${
+                  active === value ? "text-white" : "text-secondary"
+                } hover:text-white text-[18px] font-medium cursor-pointer`}
+                onClick={() => setActive(value)}
+              >
+                <a href={`#${key}`}>{value}</a>
+              </li>
+            )
           )}
-        </div>
-        <div className="flex items-center gap-2">
-          {/* hamburger: opens right sidebar (overlay) */}
-          <button
-            onClick={() => setSidebarOpen((s) => !s)}
-            aria-expanded={sidebarOpen}
-            aria-controls="right-sidebar"
-            aria-label="Open app sidebar"
-            className="px-3 py-1 rounded bg-slate-700 text-white"
+        </ul>
+        <div className="sm:hidden flex flex-1 justify-end items-center">
+          <img
+            src={toggle ? close : menu}
+            alt="menu"
+            className="w-[28px] h-[28px] object-contain cursor-pointer"
+            onClick={() => setToggle(!toggle)}
+          />
+          <div
+            className={`${
+              !toggle ? "hidden" : "flex"
+            } p-6 black-gradient absolute top-20 right-0 mx-2 my-2 min-w-[140px] z-10 rounded-xl`}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden
-            >
-              <path
-                d="M3 6h18M3 12h18M3 18h18"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+            <ul className="list-none flex sm:flex justify-end items-start flex-col gap-4">
+              {Object.entries(
+                t("Navbar.navLinks", { returnObjects: true })
+              ).map(([key, value]) => (
+                <li
+                  key={key}
+                  className={`${
+                    active === value ? "text-white" : "text-secondary"
+                  } font-poppins font-medium cursor-pointer text-[16px]`}
+                  onClick={() => {
+                    setToggle(!toggle);
+                    setActive(value);
+                  }}
+                >
+                  <a href={`#${key}`}>{value}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <LoginModal show={showLogin} onClose={() => setShowLogin(false)} />
-        <RightSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          onRequestLogin={() => setShowLogin(true)}
-        />
+        <button
+          onClick={toggleLanguage}
+          className="rounded-full p-1 bg-blue-300 focus:outline-none mx-2 "
+        >
+          <img
+            src={`https://flagsapi.com/${language.toUpperCase()}/flat/24.png`}
+            alt="Language flag"
+            className="w-6 h-6"
+          />
+        </button>
       </div>
     </nav>
   );
