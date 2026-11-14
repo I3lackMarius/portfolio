@@ -8,10 +8,18 @@ export const createVercelHandler = ({ app, connectDB }) =>
       await connectDB();
       return app(req, res);
     } catch (error) {
-      console.error('API request could not be served:', error.name);
+      const code =
+        error.message === 'MONGODB_URI is missing from environment variables'
+          ? 'MONGODB_URI_MISSING'
+          : 'DATABASE_UNAVAILABLE';
+      console.error(`API request could not be served: ${code} (${error.name})`);
       return res.status(503).json({
         success: false,
-        error: 'API temporarily unavailable',
+        code,
+        error:
+          code === 'MONGODB_URI_MISSING'
+            ? 'MongoDB is not configured'
+            : 'Database unavailable',
       });
     }
   };

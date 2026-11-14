@@ -39,7 +39,7 @@ test('handles CORS preflight without opening a database connection', async () =>
   assert.deepEqual(calls, ['express']);
 });
 
-test('returns an explicit unavailable response if MongoDB cannot connect', async () => {
+test('reports database unavailability without exposing connection details', async () => {
   const response = createResponse();
   let expressCalled = false;
   const handler = createVercelHandler({
@@ -57,6 +57,26 @@ test('returns an explicit unavailable response if MongoDB cannot connect', async
   assert.equal(response.statusCode, 503);
   assert.deepEqual(response.body, {
     success: false,
-    error: 'API temporarily unavailable',
+    code: 'DATABASE_UNAVAILABLE',
+    error: 'Database unavailable',
+  });
+});
+
+test('identifies a missing MongoDB URI without exposing its value', async () => {
+  const response = createResponse();
+  const handler = createVercelHandler({
+    connectDB: async () => {
+      throw new Error('MONGODB_URI is missing from environment variables');
+    },
+    app: () => assert.fail('Express should not run when MongoDB is not configured'),
+  });
+
+  await handler({ method: 'GET' }, response);
+
+  assert.equal(response.statusCode, 503);
+  assert.deepEqual(response.body, {
+    success: false,
+    code: 'MONGODB_URI_MISSING',
+    error: 'MongoDB is not configured',
   });
 });
