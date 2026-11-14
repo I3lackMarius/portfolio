@@ -1,49 +1,47 @@
-# Portfolio MERN Application Setup
+# Local Setup and Troubleshooting
 
-## Database Connection Troubleshooting
+## Environment variables
 
-### If you get "MONGODB_URI is missing from environment variables":
-1. **Verify the `.env` file exists in the root of your project**
-2. **Ensure correct formatting without quotes around URI:**
+The backend reads `MONGODB_URI` and `JWT_SECRET` from the process environment;
+local development can use a root `.env` file. Never print their values or paste
+them into logs, chat, source files, or documentation.
 
-```
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database
-JWT_SECRET=your-secret-key
-PORT=5000
-```
+**Security warning:** the root `.env` is currently tracked in this repository
+and its history contains a credential-bearing MongoDB URI. Treat that
+credential as compromised and rotate it before reuse. Do not copy the
+historical `.env` to another environment. See
+[the P00 audit](./docs/life2/P00-discovery.md).
 
-3. **Try these commands to test directly (from root folder):**
+To check configuration without displaying values:
 
-```bash
-# Test with explicit dotenv loading
-node -e "require('dotenv').config(); console.log(process.env.MONGODB_URI);"
-
-# If using nodemon, this approach may work:
-npx cross-env NODE_ENV=development nodemon server.js
+```powershell
+node --input-type=module -e "import('dotenv/config').then(() => console.log('MONGODB_URI configured:', Boolean(process.env.MONGODB_URI)))"
 ```
 
-### For Your MongoDB Connection to Work:
+In Vercel, configure `MONGODB_URI` and `JWT_SECRET` as environment variables,
+then redeploy Production after changing them. Do not put database credentials
+in `vercel.json` or any `VITE_` variable.
 
-1. Replace the placeholder URI in `.env` with your actual MongoDB Atlas connection string
-2. Make sure your IP address is whitelisted in MongoDB Atlas (0.0.0.0/0 for testing)
-3. Verify user credentials work properly
+## Start the application
 
-### Quick Verification Steps:
-```bash
-# Test database connectivity via command line
-node -e "
-const mongoose = require('mongoose');
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB Connected!'))
-  .catch(err => console.error('Connection error:', err))
-"
+Install dependencies and run the existing scripts from the repository root:
+
+```powershell
+npm install
+npm run dev
 ```
 
-## Architecture Status:
-✅ Backend MERN structure complete
-✅ Database models ready  
-✅ API routes implemented
-✅ Authentication middleware ready
-✅ Frontend architecture prepared
+The Vite development server proxies `/api` to Express on port 5000. The backend
+can also be started separately with `npm run dev:server`.
 
-Your portfolio is now a complete MERN application architecture with MongoDB Atlas integration that's ready to go once the database connection parameter is properly configured.
+## API behavior
+
+- `GET /api/content/it` and `GET /api/content/gb` load portfolio translations.
+- `GET /api/portfolio` and `GET /api/portfolio/:id` read portfolio items.
+- `POST /api/auth/register` is intentionally disabled.
+- Sign-in is at `/login`; the admin-only area is `/private`.
+
+For production database connection failures, check Vercel Function runtime logs
+and MongoDB Atlas Network Access. Do not broaden network access or change
+credentials without considering the security implications documented in the
+P00 report.

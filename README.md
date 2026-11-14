@@ -4,9 +4,15 @@ The Vite/React portfolio loads its Italian (`it`) and English (`gb`) content fro
 MongoDB through the Express API. The existing 3D portfolio presentation is kept;
 authentication protects the private area at `/private`.
 
+> **Critical security notice:** the root `.env` is currently tracked in this
+> repository, and its Git history contains a credential-bearing MongoDB URI.
+> Treat that database credential as compromised and rotate it before reuse.
+> Never print environment-variable values. See the
+> [P00 audit and remediation steps](./docs/life2/P00-discovery.md).
+
 ## Local setup
 
-Create a root `.env` file with:
+Configure local environment variables without committing their values:
 
 ```env
 MONGODB_URI=<your MongoDB connection string>

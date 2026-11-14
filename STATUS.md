@@ -1,48 +1,40 @@
-# Portfolio MERN Application - Status Check
+# Project Status
 
-## Current Implementation Status:
+Status date: 2026-11-14
 
-✅ **Backend MERN Structure Complete**  
-- Database models (PortfolioItem, User) 
-- API routes with CRUD operations
-- Authentication middleware ready
-- Environment variable system implemented
+## Verified implementation
 
-✅ **Frontend Architecture Ready**  
-- Component structure in place
-- API service integration prepared
-- React routing ready
+- The active client is the repository-root Vite/React app in `src/`; the root
+  `index.html` loads `src/main.jsx`.
+- Express and Mongoose code is in `backend/`. Vercel Function adapters are in
+  `api/`.
+- Existing API prefixes are `/api/content`, `/api/portfolio` and `/api/auth`.
+  Portfolio HTTP routes currently expose read-only GET operations.
+- Authentication uses bcrypt password hashes and one-day JWTs stored by the
+  browser in `localStorage`. Server middleware checks authentication and
+  `isAdmin`; public registration remains disabled.
+- `frontend/src/` is not referenced by the root app entry or npm scripts and is
+  treated as legacy pending a separate review.
 
-## How to Test Your Setup:
+## Baseline verification
 
-1. Make sure MongoDB Atlas is running and accessible
-2. Replace the placeholder MongoDB URI in `.env` with your actual connection string
-3. Ensure MongoDB user has proper permissions for the portfolio database
-4. Start the backend server: `npm run dev:server`
+- Vercel project settings select Node.js `26.x`; `package.json` declares
+  `26.x`. The workstation's default Node is `24.5.0`.
+- Under isolated Node `26.13.1`, `node --test` passes 26/26 tests and the
+  production Vite build succeeds.
+- The build reports existing Browserslist, dependency `eval`, and large-chunk
+  warnings; none blocks the build.
 
-## API Endpoints Available:
-- GET /api/portfolio - Get all portfolio items
-- POST /api/portfolio - Create new item  
-- PUT /api/portfolio/:id - Update item
-- DELETE /api/portfolio/:id - Delete item
+## Life2.0
 
-## Next Steps for Your Development:
-1. Run MongoDB Atlas database and get connection string
-2. Configure the `.env` file with your actual MongoDB URI
-3. Start MongoDB locally or connect to Atlas
-4. Test API endpoints at `http://localhost:5000/api/portfolio`
+P00 is audit and documentation only. No Life2.0 UI, API, tenant, membership or
+entitlement implementation has been added. The proposal and audit findings are
+in [docs/life2/P00-discovery.md](./docs/life2/P00-discovery.md).
 
-## Testing Instructions:
-```bash
-# Terminal 1 - Backend server
-npm run dev:server
+## Critical security action
 
-# Terminal 2 - Frontend 
-npm run dev:client
-
-# Test API manually in browser or Postman:
-# GET http://localhost:5000/api/portfolio
-```
-
-## Database Configuration Notes:
-The MERN stack is built with MongoDB Atlas support as requested. You can use your existing Atlas connection string for hosted database resources.
+The tracked root `.env` contains a credential-bearing MongoDB URI and appears in
+seven commits in local Git history. Treat the credential as compromised and
+rotate it before further production use. Rotation and Git-history cleanup were
+not performed in P00. See the P00 report for the redacted scan evidence and
+remediation sequence. Never print environment-variable values.
