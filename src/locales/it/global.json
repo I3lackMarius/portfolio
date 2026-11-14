@@ -6,7 +6,25 @@
       "Experience": "Esperienza",
       "Works": "Progetti",
       "Contact": "Contatti"
-    }
+    },
+    "PrivateArea": "Area privata",
+    "Login": "Accedi",
+    "ChangeLanguage": "Cambia lingua"
+  },
+  "Auth": {
+    "LoginTitle": "Accedi",
+    "Email": "Email",
+    "Password": "Password",
+    "LoginButton": "Accedi",
+    "LoggingIn": "Accesso in corso...",
+    "InvalidCredentials": "Email o password non validi.",
+    "PrivateTitle": "Area privata",
+    "PrivateWelcome": "Benvenuto, {{name}}",
+    "PrivateReady": "Accesso all'area privata verificato.",
+    "PrivateError": "Impossibile verificare l'accesso all'area privata.",
+    "VerifyingAccess": "Verifica dell'accesso...",
+    "ReturnToPortfolio": "Torna al portfolio",
+    "Logout": "Esci"
   },
   "Hero": {
     "Iam": "Hey, sono ",
@@ -259,6 +277,8 @@
     "Message": "Il tuo Messaggio",
     "Messageplaceholder": "Qual'è il tuo messaggio?",
     "SubmitButtonText": "INVIA",
-    "SubmittingButtonText": "INVIANDO"
+    "SubmittingButtonText": "INVIANDO",
+    "SendSuccess": "Grazie. Ti ricontatterò il prima possibile.",
+    "SendError": "Si è verificato un errore. Riprova."
   }
 }

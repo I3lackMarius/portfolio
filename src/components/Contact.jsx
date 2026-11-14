@@ -50,7 +50,7 @@ const Contact = () => {
       .then(
         () => {
           setLoading(false);
-          alert("Thank you. I will get back to you as soon as possible.");
+          alert(t("Contact.SendSuccess"));
 
           setForm({
             name: "",
@@ -62,7 +62,7 @@ const Contact = () => {
           setLoading(false);
           console.error(error);
 
-          alert("Ahh, something went wrong. Please try again.");
+          alert(t("Contact.SendError"));
         }
       );
   };

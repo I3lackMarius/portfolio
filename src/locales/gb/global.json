@@ -6,7 +6,25 @@
       "Experience": "Work",
       "Works": "Projects",
       "Contact": "Contact"
-    }
+    },
+    "PrivateArea": "Private area",
+    "Login": "Sign in",
+    "ChangeLanguage": "Change language"
+  },
+  "Auth": {
+    "LoginTitle": "Sign in",
+    "Email": "Email",
+    "Password": "Password",
+    "LoginButton": "Sign in",
+    "LoggingIn": "Signing in...",
+    "InvalidCredentials": "The email or password is incorrect.",
+    "PrivateTitle": "Private area",
+    "PrivateWelcome": "Welcome, {{name}}",
+    "PrivateReady": "Private-area access verified.",
+    "PrivateError": "Unable to verify private-area access.",
+    "VerifyingAccess": "Verifying access...",
+    "ReturnToPortfolio": "Return to portfolio",
+    "Logout": "Sign out"
   },
   "Hero": {
     "Iam": "Hey, I'm ",
@@ -264,6 +282,8 @@
     "Message": "Your Message",
     "Messageplaceholder": "What you want to say?",
     "SubmitButtonText": "SEND",
-    "SubmittingButtonText": "SENDING"
+    "SubmittingButtonText": "SENDING",
+    "SendSuccess": "Thank you. I will get back to you as soon as possible.",
+    "SendError": "Something went wrong. Please try again."
   }
 }

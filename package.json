@@ -7,6 +7,10 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cross-env NODE_ENV=development nodemon -e js,mjs,cjs,json --exec 'node backend/server.js'",
     "dev:client": "vite",
+    "seed:content": "node backend/scripts/seedSiteContent.js",
+    "seed:content:dry": "node backend/scripts/seedSiteContent.js --dry-run",
+    "promote:admin": "node backend/scripts/promoteAdmin.js",
+    "test": "node --test",
     "build": "vite build",
     "preview": "vite preview"
   },

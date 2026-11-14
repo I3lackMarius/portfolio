@@ -7,16 +7,28 @@ import close from "/assets/close.svg";
 import personal from "/assets/ProfilePic.jpg";
 
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const Navbar = () => {
   const [active, setActive] = useState("");
   const [toggle, setToggle] = useState(false);
   const { t, i18n } = useTranslation("global");
-  const [language, setLanguage] = useState("gb");
+  const { user } = useAuth();
+  const [language, setLanguage] = useState(
+    i18n.resolvedLanguage === "it" ? "it" : "gb",
+  );
+
+  useEffect(() => {
+    const updateLanguage = (nextLanguage) => {
+      setLanguage(nextLanguage === "it" ? "it" : "gb");
+    };
+
+    i18n.on("languageChanged", updateLanguage);
+    return () => i18n.off("languageChanged", updateLanguage);
+  }, [i18n]);
 
   const toggleLanguage = () => {
     const newLanguage = language === "gb" ? "it" : "gb";
-    setLanguage(newLanguage);
     i18n.changeLanguage(newLanguage);
   };
 
@@ -89,16 +101,25 @@ const Navbar = () => {
             </ul>
           </div>
         </div>
-        <button
-          onClick={toggleLanguage}
-          className="rounded-full p-1 bg-blue-300 focus:outline-none mx-2 "
-        >
-          <img
-            src={`https://flagsapi.com/${language.toUpperCase()}/flat/24.png`}
-            alt="Language flag"
-            className="w-6 h-6"
-          />
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to={user ? "/private" : "/login"}
+            className="text-white text-sm font-medium"
+          >
+            {user ? t("Navbar.PrivateArea") : t("Navbar.Login")}
+          </Link>
+          <button
+            onClick={toggleLanguage}
+            className="rounded-full p-1 bg-blue-300 focus:outline-none mx-2 "
+            aria-label={t("Navbar.ChangeLanguage")}
+          >
+            <img
+              src={`https://flagsapi.com/${language.toUpperCase()}/flat/24.png`}
+              alt=""
+              className="w-6 h-6"
+            />
+          </button>
+        </div>
       </div>
     </nav>
   );
