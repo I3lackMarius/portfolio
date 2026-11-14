@@ -12,6 +12,8 @@ let SiteContent;
 let PortfolioItem;
 let Session;
 let LoginAttempt;
+let Tenant;
+let Membership;
 let mongo;
 let server;
 let baseUrl;
@@ -60,12 +62,26 @@ before(
     });
     await mongoose.connect(mongo.getUri());
 
-    [User, SiteContent, PortfolioItem, Session, LoginAttempt] = await Promise.all([
+    [
+      User,
+      SiteContent,
+      PortfolioItem,
+      Session,
+      LoginAttempt,
+      Tenant,
+      Membership,
+    ] = await Promise.all([
       import('./models/User.js').then((module) => module.default),
       import('./models/SiteContent.js').then((module) => module.default),
       import('./models/PortfolioItem.js').then((module) => module.default),
       import('./models/Session.js').then((module) => module.default),
       import('./models/LoginAttempt.js').then((module) => module.default),
+      import('./life/core/tenantRepository.js').then(
+        (module) => module.Tenant,
+      ),
+      import('./life/core/membershipRepository.js').then(
+        (module) => module.Membership,
+      ),
     ]);
     app = (await import('./app.js')).default;
     await Promise.all([
@@ -74,6 +90,8 @@ before(
       PortfolioItem.init(),
       Session.init(),
       LoginAttempt.init(),
+      Tenant.init(),
+      Membership.init(),
     ]);
 
     await User.create([
@@ -154,6 +172,17 @@ test('login, current user, admin route, logout, and revoked-session reuse work e
   assert.equal(Object.hasOwn(user, 'token'), false);
 
   const sessionCookie = sessionCookieFrom(loginResponse);
+  const personalTenant = await Tenant.findOne({
+    personalOwnerId: user._id,
+    type: 'personal',
+  });
+  assert.ok(personalTenant);
+  const ownerMembership = await Membership.findOne({
+    tenantId: personalTenant._id,
+    userId: user._id,
+  });
+  assert.equal(ownerMembership.role, 'owner');
+
   const sessionToken = sessionCookie.split('=')[1];
   const cookieHeader = `${sessionCookie}; ${csrf.cookie}`;
   const currentUser = await fetch(`${baseUrl}/api/auth/me`, {

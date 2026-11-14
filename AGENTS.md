@@ -4,8 +4,8 @@
 
 - Life2.0 is an incremental extension of this repository, not a new monorepo or framework migration.
 - Preserve the public portfolio's routes, behavior, appearance, and existing APIs.
-- Keep future Life2.0 UI under `src/life/`, backend modules under `backend/life/`, and Vercel adapters under `api/life/`.
-- Keep public registration disabled. Do not start tenant, membership, entitlement, payment, or product-module work before its approved milestone.
+- Keep Life2.0 UI under `src/life/`, backend modules under `backend/life/`, and Vercel adapters under `api/life/`.
+- P01B establishes the tenant, membership, and entitlement foundations. Keep public registration disabled; add product modules, payment, and broader tenant workflows only in their approved milestones.
 - For future Life2.0 UI, use the official v0.4 Figma prototype as the visual reference when the Product Owner supplies it.
 
 ## Milestones and Git

@@ -69,6 +69,7 @@ test('login normalizes email, creates a hashed session, and returns only public 
         clearedAttempts = filter;
       },
     },
+    provisionWorkspace: async () => {},
     createToken: () => token,
     now: () => new Date('2026-11-14T12:00:00.000Z'),
     sessionMaxAgeMs: 60_000,
@@ -167,6 +168,7 @@ test('login revokes a prior cookie session before issuing a new session', async 
       create: async (session) => operations.push(['create', session]),
     },
     LoginAttemptModel: { deleteOne: async () => {} },
+    provisionWorkspace: async () => {},
     createToken: () => 'new-session-token',
     isProduction: false,
   });

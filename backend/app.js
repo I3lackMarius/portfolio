@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import portfolioRoutes from './routes/portfolioRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import siteContentRoutes from './routes/siteContentRoutes.js';
+import lifeRoutes from './life/routes/lifeRoutes.js';
 import createCsrfProtection from './middleware/csrf.js';
 import errorHandler from './middleware/error.js';
 import { securityConfig } from './config/security.js';
@@ -55,6 +56,7 @@ app.get('/', (req, res) => {
 app.use('/api/content', siteContentRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/life/v1', lifeRoutes);
 app.use(errorHandler);
 
 export default app;
