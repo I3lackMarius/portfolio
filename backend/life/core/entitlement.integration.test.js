@@ -244,6 +244,10 @@ test('access resolution requires an active tenant, membership, and entitlement',
     ).reason,
     'inactive_entitlement',
   );
+  assert.equal(
+    (await Entitlement.findById(entitlement._id)).status,
+    'suspended',
+  );
 
   await entitlementRepository.updateStatus(entitlement._id, 'active');
   await tenantRepository.updateStatus(tenant._id, 'suspended');

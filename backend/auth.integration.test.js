@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import test, { after, before } from 'node:test';
 import { hashSessionToken } from './security/session.js';
+import { entitlementRepository } from './life/core/entitlementRepository.js';
+import { provisioningService } from './life/core/provisioningService.js';
 
 const origin = 'http://localhost:5173';
 let app;
@@ -14,6 +16,7 @@ let Session;
 let LoginAttempt;
 let Tenant;
 let Membership;
+let Entitlement;
 let mongo;
 let server;
 let baseUrl;
@@ -70,6 +73,7 @@ before(
       LoginAttempt,
       Tenant,
       Membership,
+      Entitlement,
     ] = await Promise.all([
       import('./models/User.js').then((module) => module.default),
       import('./models/SiteContent.js').then((module) => module.default),
@@ -82,6 +86,9 @@ before(
       import('./life/core/membershipRepository.js').then(
         (module) => module.Membership,
       ),
+      import('./life/core/entitlementRepository.js').then(
+        (module) => module.Entitlement,
+      ),
     ]);
     app = (await import('./app.js')).default;
     await Promise.all([
@@ -92,6 +99,7 @@ before(
       LoginAttempt.init(),
       Tenant.init(),
       Membership.init(),
+      Entitlement.init(),
     ]);
 
     await User.create([
@@ -172,16 +180,21 @@ test('login, current user, admin route, logout, and revoked-session reuse work e
   assert.equal(Object.hasOwn(user, 'token'), false);
 
   const sessionCookie = sessionCookieFrom(loginResponse);
-  const personalTenant = await Tenant.findOne({
-    personalOwnerId: user._id,
-    type: 'personal',
-  });
-  assert.ok(personalTenant);
-  const ownerMembership = await Membership.findOne({
-    tenantId: personalTenant._id,
-    userId: user._id,
-  });
-  assert.equal(ownerMembership.role, 'owner');
+  assert.equal(
+    await Tenant.countDocuments({ personalOwnerId: user._id }),
+    0,
+    'Login must not provision a personal tenant',
+  );
+  assert.equal(
+    await Membership.countDocuments({ userId: user._id }),
+    0,
+    'Login must not create a membership',
+  );
+  assert.equal(
+    await Entitlement.countDocuments({}),
+    0,
+    'Login must not create entitlements',
+  );
 
   const sessionToken = sessionCookie.split('=')[1];
   const cookieHeader = `${sessionCookie}; ${csrf.cookie}`;
@@ -216,6 +229,39 @@ test('login, current user, admin route, logout, and revoked-session reuse work e
     tokenHash: hashSessionToken(sessionToken),
   });
   assert.ok(persistedSession.revokedAt);
+});
+
+test('login does not expand a Finance-only workspace entitlement', async () => {
+  const user = await User.create({
+    name: 'Finance Test',
+    email: 'finance@example.test',
+    password: 'finance-password',
+  });
+  const { tenant } = await provisioningService.provisionPersonalWorkspace(
+    user._id,
+  );
+  await entitlementRepository.create({
+    tenantId: tenant._id,
+    moduleKey: 'finance',
+  });
+
+  const { response, csrf } = await login(
+    'finance@example.test',
+    'finance-password',
+  );
+  assert.equal(response.status, 200);
+
+  const cookie = `${sessionCookieFrom(response)}; ${csrf.cookie}`;
+  const context = await fetch(
+    `${baseUrl}/api/life/v1/context?tenantId=${tenant._id}`,
+    { headers: { Origin: origin, Cookie: cookie } },
+  );
+  assert.equal(context.status, 200);
+  const { modules } = await context.json();
+  assert.deepEqual(
+    modules.filter((module) => module.entitled).map((module) => module.key),
+    ['finance'],
+  );
 });
 
 test('a non-admin can authenticate but receives 403 for the private area', async () => {

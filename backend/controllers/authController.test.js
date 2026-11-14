@@ -45,6 +45,7 @@ test('login normalizes email, creates a hashed session, and returns only public 
   let selectedPassword = false;
   let storedSession;
   let clearedAttempts;
+  let provisionCalls = 0;
   const token = 'opaque-session-token';
   const controller = createAuthController({
     UserModel: {
@@ -69,7 +70,9 @@ test('login normalizes email, creates a hashed session, and returns only public 
         clearedAttempts = filter;
       },
     },
-    provisionWorkspace: async () => {},
+    provisionWorkspace: async () => {
+      provisionCalls += 1;
+    },
     createToken: () => token,
     now: () => new Date('2026-11-14T12:00:00.000Z'),
     sessionMaxAgeMs: 60_000,
@@ -89,6 +92,7 @@ test('login normalizes email, creates a hashed session, and returns only public 
 
   assert.equal(queriedEmail, 'test@example.com');
   assert.equal(selectedPassword, true);
+  assert.equal(provisionCalls, 0);
   assert.deepEqual(storedSession, {
     tokenHash: hashSessionToken(token),
     userId: 'user-id',

@@ -16,7 +16,6 @@ import {
   setSessionCookie,
 } from '../security/session.js';
 import { securityConfig } from '../config/security.js';
-import { provisioningService } from '../life/core/provisioningService.js';
 
 const publicUser = (user) => ({
   _id: String(user._id),
@@ -36,7 +35,6 @@ export const createAuthController = ({
   createToken = createSessionToken,
   sessionMaxAgeMs = securityConfig.sessionMaxAgeMs,
   isProduction = securityConfig.isProduction,
-  provisionWorkspace = provisioningService.provisionPersonalWorkspace,
 } = {}) => ({
   csrfToken: (req, res) => {
     const token = createCsrfToken();
@@ -69,8 +67,6 @@ export const createAuthController = ({
           message: 'Invalid credentials',
         });
       }
-
-      await provisionWorkspace(user._id);
 
       const createdAt = now();
       const expiresAt = new Date(createdAt.getTime() + sessionMaxAgeMs);

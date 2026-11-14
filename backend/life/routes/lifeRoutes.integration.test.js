@@ -203,14 +203,59 @@ test('context validates selection and returns server-derived modules and members
         entitled: true,
         available: false,
       },
+      {
+        key: 'productivity',
+        name: 'Productivity',
+        implemented: false,
+        entitled: false,
+        available: false,
+      },
+      {
+        key: 'health',
+        name: 'Health',
+        implemented: false,
+        entitled: false,
+        available: false,
+      },
+      {
+        key: 'journal',
+        name: 'Journal',
+        implemented: false,
+        entitled: false,
+        available: false,
+      },
     ],
   });
+});
+
+test('an administrator without a workspace receives an empty list and no bootstrap route', async () => {
+  const { user, cookie } = await createAuthenticatedUser(
+    'admin-without-workspace@example.test',
+  );
+  user.isAdmin = true;
+  await user.save();
+
+  const workspaces = await getJson(
+    `${baseUrl}/api/life/v1/workspaces`,
+    cookie,
+  );
+  assert.equal(workspaces.status, 200);
+  assert.deepEqual(await workspaces.json(), { workspaces: [] });
+
+  const bootstrap = await getJson(
+    `${baseUrl}/api/life/v1/bootstrap`,
+    cookie,
+  );
+  assert.equal(bootstrap.status, 404);
+  assert.equal(await Tenant.countDocuments(), 0);
 });
 
 test('requires a valid session and denies guessed tenant IDs', async () => {
   const targetTenant = await tenantService.createSharedTenant('Private');
   const targetIdentity = await createAuthenticatedUser('owner@example.test');
   const attacker = await createAuthenticatedUser('attacker@example.test');
+  attacker.user.isAdmin = true;
+  await attacker.user.save();
   await membershipRepository.create({
     userId: targetIdentity.user._id,
     tenantId: targetTenant._id,

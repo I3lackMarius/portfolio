@@ -1,7 +1,6 @@
 # Life2.0 P01B - Platform Core
 
-Status: implementation and local verification complete; Product Owner
-validation is pending.
+Status: final acceptance checks complete; ready for Product Owner acceptance.
 
 ## Scope and branch
 
@@ -23,17 +22,30 @@ validation is pending.
   A partial unique index allows at most one personal tenant per owner.
 - Memberships are unique per `(tenantId, userId)` and have an `owner` or
   `member` role plus `active`, `suspended`, or `disabled` status.
-- Entitlements are unique per `(tenantId, moduleKey)`. Module definitions come
-  from an immutable registry; `finance` is registered but marked
-  `implemented: false`.
-- A successful login idempotently provisions the user's personal workspace
-  and owner membership. Provisioning does not promote or rewrite an existing
-  membership. There is no self-provisioning endpoint; public registration
-  remains disabled.
+- Entitlements are unique per `(tenantId, moduleKey)`. The immutable registry
+  declares Finance, Productivity, Health, and Journal, all with
+  `implemented: false`; an entitlement cannot make an unimplemented module
+  available.
+- Login authenticates the user and creates a session only. It creates no
+  workspace, membership, or entitlement. Public registration remains disabled.
+- Workspace/module provisioning is an explicit local administrative operation:
+  `node backend/scripts/provisionLifeWorkspace.js --user-id <id> --modules <module,...>`
+  defaults to dry-run; writes require the additional `--apply` flag. The
+  required module list is validated against the registry, only requested
+  entitlements are created, existing memberships are not promoted, and
+  existing entitlements (including suspended ones) are left unchanged.
+  The command requires `MONGODB_URI` from its environment and does not load
+  `.env` or print user, credential, or connection-string values.
 - `GET /api/life/v1/workspaces` lists only active memberships in active
-  tenants. `GET /api/life/v1/context?tenantId=...` requires an explicit,
-  valid tenant ID, an authenticated session, and active membership. The
-  response derives roles and modules server-side and is marked `no-store`.
+  tenants; an authenticated user without a workspace receives
+  `{ "workspaces": [] }`. `GET /api/life/v1/context?tenantId=<id>` requires
+  an authenticated session, an explicit valid tenant ID, and active
+  membership. Missing/invalid IDs are rejected and guessed tenant IDs are
+  forbidden. Its response derives roles and the `implemented`, `entitled`,
+  and `available` module flags server-side and is marked `no-store`.
+- There is no Life2.0 bootstrap endpoint. The legacy `/api/auth/private`
+  endpoint is preserved, but `src/life/LifeProvider.jsx` calls the versioned
+  workspaces/context APIs through the `/api` client and does not depend on it.
 - Module authorization checks tenant status, active membership, entitlement
   status, and registry implementation status. An entitlement alone cannot
   enable an unimplemented module; `isAdmin`, client body fields, and guessed
@@ -57,28 +69,30 @@ validation is pending.
 
 ## Verification
 
-- `npm test`: **84/84 passed** on Node.js 26.13.1. Tests use synthetic
-  identities and MongoDB Memory Server; login provisioning, unique indexes,
-  tenant isolation, entitlement decisions, and explicit Vercel route dispatch
-  are covered.
-- `npm run build -- --config vite.p01b.test.config.js`: **passed** with an
-  empty Vite env directory so the local `.env` was not loaded. The temporary
-  config was removed after verification. Existing Browserslist,
-  `three-stdlib` `eval`, and large-chunk warnings remain.
-- Browser verification used an isolated MongoDB Memory Server and synthetic
-  account on loopback. `/private` loaded the personal workspace and owner
-  membership without requesting `/api/content/*`; at a 390px viewport there
-  was no horizontal overflow. Theme switching changed the rendered
-  background in both modes. The public route subsequently loaded both locale
-  content endpoints successfully and rendered the existing portfolio sections.
-- Non-fatal React Router v7 future-flag warnings remain. An initial browser
-  attempt also received 500 responses after its short-lived synthetic API
-  process exited; restarting the isolated API with synthetic content produced
-  successful 200 responses. The earlier expected unauthenticated `/me` 401
-  was followed by a successful synthetic login.
-- The local Ollama/OpenCode workflow was used for initial B1/B2 generation.
-  Defects in generated output were corrected or replaced after local tests;
-  no production credentials or data were provided to those tools.
+- `npm test`: **90/90 passed** on Node.js 26.13.1. Integration tests use
+  MongoDB Memory Server 7.0.14 and synthetic identities; they cover login
+  without provisioning, Finance-only and all-module explicit provisioning,
+  concurrent idempotency, suspended-entitlement retention/denial,
+  `isAdmin` membership isolation, empty workspaces, and the versioned API.
+  The Vercel Function adapter is exercised in the local test harness; no
+  deployed Vercel environment was used.
+- `npm run build -- --config vite.p01b.test.config.js`: **passed** on
+  Node.js 26.13.1 with an empty Vite env directory; the temporary config was
+  removed. Existing Browserslist, `three-stdlib` `eval`, and large-chunk
+  warnings remain.
+- Browser flow used Vite plus the real Express backend and an ephemeral
+  MongoDB Memory Server with a synthetic user, workspace, entitlements, and
+  portfolio content: login → `/private` → refresh → logout → public portfolio
+  → `/private` redirected to login. The private page showed the explicitly
+  provisioned four-module workspace after refresh. No API mocks were used.
+  The public page rendered its portfolio sections; the final browser
+  observation had no uncaught page errors. Expected unauthenticated
+  `/api/auth/me` 401 and non-fatal React Router/WebGL warnings were observed.
+- Tests/build/browser checks did not load `.env` or access production data.
+- OpenCode/Ollama was attempted in a sanitized workspace. Its edit attempts
+  produced invalid/no-op changes and stalled during correction; those outputs
+  were not transferred. Copilot made and verified the final surgical changes.
+  No production credentials or data were sent to the local model.
 
 ## Outstanding items and limits
 
