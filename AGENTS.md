@@ -30,6 +30,9 @@
 - Delegate implementation and test authoring to locally available OpenCode/Ollama models when requested; do not fall back to cloud models without authorization.
 - Before delegation, use a sanitized context and enforce file-system/tool restrictions. A worktree alone is not a security boundary.
 - Exclude `.env`, `.git`, dependencies, production data, and private keys from delegated contexts. Disable shell/network access unless a separately isolated environment makes the exact operation safe.
+- For file edits, select the `build` agent explicitly; `plan` and `explore` are read-only and cannot perform the requested edits. Pin the approved local model and inspect the resolved settings with `opencode debug config`; `OPENCODE_CONFIG` alone does not guarantee that global permissions have been overridden.
+- Use a disposable workspace and an explicit allowlist limited to reading and editing files there. Deny shell, web access, external directories, and MCP servers unless separately approved and isolated; explicitly disable configured MCP servers rather than assuming they are inactive.
+- Let the model edit or author tests, but run tests and builds separately with sanitized environment and synthetic data. Do not broaden model permissions to work around test-runner or isolation limitations.
 - Run tests only with synthetic configuration and an isolated test database or injected fakes. Never allow tests to inherit production database settings.
 - Preserve existing tests and behavior; report commands and actual outcomes, not planned checks.
 

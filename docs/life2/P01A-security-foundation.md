@@ -93,8 +93,10 @@ test preloader assigns synthetic configuration and skips loading `.env`.
 - `npm run build`: **passed** in a temporary project copy excluding `.env`,
   `.git`, and `node_modules`; dependencies were linked from the local install.
 - Local runtime: Node `24.5.0`, npm `10.2.3`. The project and Vercel settings
-  target Node `26.x`; P01A still needs a verification run on Node 26 before
-  production.
+  target Node `26.x`. P01A-R subsequently verified `npm test` (62/62) and
+  `npm run build` with Node `26.13.1` in an isolated temporary copy; this does
+  not verify the runtime configured for a live Vercel deployment. See
+  `P01A-R-local-agent-workflow.md`.
 - Build warnings remain for stale Browserslist data, `eval` in the existing
   `three-stdlib` bundle, and a minified chunk above 500 kB. They did not block
   the build.
