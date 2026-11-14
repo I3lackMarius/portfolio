@@ -28,10 +28,12 @@ The seed command does not overwrite existing documents. To intentionally replace
 both locale documents with the current `src/locales` JSON files, run
 `npm run seed:content -- --replace`.
 
-The development Vite server proxies `/api` to the backend on port 5000. For a
-production deployment, route `/api` on the portfolio domain to the Express
-backend, or set `VITE_API_URL` to the backend's full `/api` URL before building.
-Do not use a `localhost` API URL in a public build.
+The development Vite server proxies `/api` to the backend on port 5000. On
+Vercel, `api/[...path].js` exposes the Express API as a serverless function.
+Configure `MONGODB_URI` and `JWT_SECRET` in the Vercel project's Production
+environment variables before deploying. The client uses the same-origin `/api`
+path by default; set `VITE_API_URL` only when deploying the backend on another
+host. Never set a public `localhost` API URL.
 
 ## Authentication
 

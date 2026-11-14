@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+let connectionPromise;
+
 const connectDB = async () => {
   if (mongoose.connection.readyState === 1) {
     return mongoose.connection;
@@ -13,9 +15,20 @@ const connectDB = async () => {
     throw new Error('MONGODB_URI is missing from environment variables');
   }
 
-  const connection = await mongoose.connect(uri);
-  console.log(`MongoDB connected on host: ${connection.connection.host}`);
-  return connection.connection;
+  if (!connectionPromise || mongoose.connection.readyState === 0) {
+    connectionPromise = mongoose
+      .connect(uri)
+      .then((connection) => {
+        console.log(`MongoDB connected on host: ${connection.connection.host}`);
+        return connection.connection;
+      })
+      .catch((error) => {
+        connectionPromise = undefined;
+        throw error;
+      });
+  }
+
+  return connectionPromise;
 };
 
 export default connectDB;
