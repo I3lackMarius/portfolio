@@ -29,7 +29,7 @@ both locale documents with the current `src/locales` JSON files, run
 `npm run seed:content -- --replace`.
 
 The development Vite server proxies `/api` to the backend on port 5000. On
-Vercel, `api/[...path].js` exposes the Express API as a serverless function.
+Vercel, functions under `api/` expose the Express API as serverless endpoints.
 Configure `MONGODB_URI` and `JWT_SECRET` in the Vercel project's Production
 environment variables before deploying. The client uses the same-origin `/api`
 path by default; set `VITE_API_URL` only when deploying the backend on another
