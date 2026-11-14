@@ -1,35 +1,67 @@
-import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Session from '../models/Session.js';
+import {
+  hashSessionToken,
+  readCookie,
+  sessionCookieName,
+} from '../security/session.js';
+import { securityConfig } from '../config/security.js';
 
-const protect = async (req, res, next) => {
-  const authorization = req.headers.authorization;
+const unauthorized = (res) =>
+  res.status(401).json({ success: false, message: 'Not authorized' });
 
-  if (!authorization?.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
+export const createProtect = ({
+  UserModel = User,
+  SessionModel = Session,
+  now = () => new Date(),
+  isProduction = securityConfig.isProduction,
+} = {}) => async (req, res, next) => {
+  const token = readCookie(req, sessionCookieName(isProduction));
+  if (!token) {
+    return unauthorized(res);
   }
 
   try {
-    const token = authorization.slice('Bearer '.length);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
+    const session = await SessionModel.findOne({
+      tokenHash: hashSessionToken(token),
+    });
+    const currentTime = now();
 
-    if (!user) {
-      return res.status(401).json({ message: 'Not authorized' });
+    if (
+      !session ||
+      session.revokedAt ||
+      !session.expiresAt ||
+      new Date(session.expiresAt).getTime() <= currentTime.getTime()
+    ) {
+      return unauthorized(res);
     }
 
+    const user = await UserModel.findById(session.userId).select('-password');
+    if (!user) {
+      await SessionModel.updateOne(
+        { _id: session._id, revokedAt: null },
+        { $set: { revokedAt: currentTime } },
+      );
+      return unauthorized(res);
+    }
+
+    req.session = session;
     req.user = user;
     return next();
-  } catch {
-    return res.status(401).json({ message: 'Not authorized' });
+  } catch (error) {
+    return next(error);
   }
 };
 
-const adminOnly = (req, res, next) => {
+export const protect = createProtect();
+
+export const adminOnly = (req, res, next) => {
   if (!req.user?.isAdmin) {
-    return res.status(403).json({ message: 'Admin access required' });
+    return res.status(403).json({
+      success: false,
+      message: 'Admin access required',
+    });
   }
 
   return next();
 };
-
-export { adminOnly, protect };

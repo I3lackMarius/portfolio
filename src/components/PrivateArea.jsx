@@ -10,6 +10,7 @@ const PrivateArea = () => {
   const navigate = useNavigate();
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState(false);
+  const [logoutError, setLogoutError] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -33,9 +34,13 @@ const PrivateArea = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      navigate("/");
+    } else {
+      setLogoutError(true);
+    }
   };
 
   return (
@@ -50,11 +55,21 @@ const PrivateArea = () => {
         ) : (
           <p role="status">{t("Auth.VerifyingAccess")}</p>
         )}
+        {logoutError && (
+          <p className="mt-4 text-red-400" role="alert">
+            {t("Auth.PrivateError")}
+          </p>
+        )}
         <div className="mt-8 flex gap-4">
           <Link to="/" className="underline">
             {t("Auth.ReturnToPortfolio")}
           </Link>
-          <button type="button" className="underline" onClick={handleLogout}>
+          <button
+            type="button"
+            className="underline disabled:opacity-50"
+            disabled={loading}
+            onClick={handleLogout}
+          >
             {t("Auth.Logout")}
           </button>
         </div>

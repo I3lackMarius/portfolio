@@ -8,16 +8,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const envPath = path.join(__dirname, '..', '.env');
-dotenv.config({ path: envPath });
+if (process.env.NODE_ENV !== 'test') {
+  dotenv.config({ path: envPath });
+}
 
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET is required to start the server');
-    }
-
     await connectDB();
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
