@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../services/api.js";
 
 const PrivateArea = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const { t } = useTranslation("global");
   const navigate = useNavigate();
   const [verified, setVerified] = useState(false);

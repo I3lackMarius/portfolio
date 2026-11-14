@@ -53,6 +53,18 @@ validation is pending.
   value. It no longer reads or sends a JWT bearer token.
 - The separate legacy `frontend/src/` tree was not modified.
 
+### Console-error follow-up
+
+- Fixed an undefined `loading` reference in the private-area logout button and
+  corrected the contact form's React `className` property.
+- Allocated the stars position buffer as exactly three coordinates per point,
+  eliminating a non-finite vertex and the Three.js bounding-sphere error.
+- Added intrinsic dimensions to the Three.js SVG icon used as a WebGL texture;
+  this eliminated the browser's invalid-image/immutable-texture warnings.
+- Verified the private route and portfolio page in a browser with auth/content
+  requests intercepted and synthetic responses. No JavaScript or WebGL errors
+  remained. React Router's two v7 future-flag notices remain non-fatal.
+
 ## Required environment configuration
 
 Before deploying this change, configure these values in Vercel Production:

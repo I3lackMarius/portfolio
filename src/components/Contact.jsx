@@ -125,7 +125,7 @@ const Contact = () => {
             />
           </label>
 
-          <button class="sendForm" type="submit">
+          <button className="sendForm" type="submit">
             <span></span>
             <span></span>
             <span></span>
